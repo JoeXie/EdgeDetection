@@ -3,7 +3,7 @@ import java.awt.Polygon;
 
 public class GetGrainEdge
 {
-		static	final int UP=0,DOWN=1,UP_OR_DOWN=2,LEFT=3,RIGHT=4,LEFT_OR_RIGHT=5,NA=6;
+	static final int UP=0,DOWN=1,UP_OR_DOWN=2,LEFT=3,RIGHT=4,LEFT_OR_RIGHT=5,NA=6;
 	public int npoints;  //颗粒边界点个数
 	private int maxPoints=1000; //初设颗粒边界点个数
 	private int maxPoints0=400;	//初设颗粒个数
@@ -23,9 +23,10 @@ public class GetGrainEdge
 	Polygon[] polygon=new Polygon[maxPoints0];//多边形（颗粒边界）数组
 	int[] area=new int[maxPoints0];      //颗粒占的像素点个数
 	public int[] X=new int[maxPoints0];  //颗粒中心数组
-	public int[] Y=new int[maxPoints0];				   
-
-	public GetGrainEdge(MyFrame f, String ss, BMPDecoder bmp)
+	public int[] Y=new int[maxPoints0];
+	
+	
+	public GetGrainEdge(MyFrame f, String ss, BMPDecoder bmp)//构造函数
 	{
 		BMPDecoder newbmp=bmp;
 		int m_b;
@@ -35,17 +36,21 @@ public class GetGrainEdge
 		          //(原数组名，起始位置，目标数组名，起始位置，拷贝大小)
 		System.arraycopy(newbmp.intData, 0, cpixels, 0, width*height);//将整副图像像素值复制到cpixels数组里
 		
-		outer1: for(int y=newbmp.height*(100-ChangeMyFrame.processSize)/200;
-					y<newbmp.height*(100+ChangeMyFrame.processSize)/200;y++)
+		//循环遍历图像的每一个点，ChangeMyFrame.processSize可忽略，它是用来选择图像中的某一块区域。
+		//寻找初始点
+		outer1: for(int y=newbmp.height*(100-ChangeMyFrame.processSize)/200; 
+					y<newbmp.height*(100+ChangeMyFrame.processSize)/200; y++)
 				{
-					for(int x=newbmp.width*(100-ChangeMyFrame.processSize)/200;
-						x<newbmp.width*(100+ChangeMyFrame.processSize)/200; x++)
+					for(int x= newbmp.width*(100-ChangeMyFrame.processSize)/200;
+						x< newbmp.width*(100+ChangeMyFrame.processSize)/200; x++)
 					{
-						m_b=newbmp.intData[y*bmp.width+x];  //&0x00FFFFFF;
-						if(m_b==0xFF000000)  //确定黑色为初始点
+						m_b= newbmp.intData[y*bmp.width+x];  //&0x00FFFFFF
+						/*0xFF000000，第一个FF是缺省字节，后面三个"00"分别是R,G,B，所以总共四个字节，是int类型。
+						二值图像中，黑色是R=G=B=00000000(8位，一个字节）；白色是R=G=B=FFFFFFFF。*/
+						if(m_b== 0xFF000000)  //确定黑色为初始点
 						{
-							Xstart=x;
-							Ystart=y;
+							Xstart= x;
+							Ystart= y;
 							break outer1;
 						}
 					}
@@ -57,159 +62,171 @@ public class GetGrainEdge
 	}
 	
 	/*************************************************************************************
-	private int getBytePixel(int x,int y) ：  获得该点的像素值
+	private int getBytePixel(int x,int y) ：  获得坐标点(x, y)的像素值
 	**************************************************************************************/
 	private int getBytePixel(int x,int y)
 	{
-		if(x>=0&&x<width&&y>=0&&y<height)
+		if(x>= 0 && x< width && y>= 0 && y< height)
 		{
 			return cpixels[y*width+x];
 		}
 		else
-			return 0xFFFFFFFF;    //图像大小之外的为白色
+			return 0xFFFFFFFF;    //超出图像大小，定义为白色
 	}
 	/****************************************************************************************
-	private boolean inside(int x,int y) ：   判断是否与初始点值相同
+	private boolean inside(int x, int y) ：   判断点（x, y）的像素值是否与初始点相同
 	****************************************************************************************/
-	private boolean inside(int x,int y)
+	private boolean inside(int x, int y)
 	{
 		int value;
 		value=getBytePixel(x,y);
-		return value==lowerThreshold&&value==upperThreshold;//是否与初始点相同
+		return value==lowerThreshold && value==upperThreshold; //是否与初始点相同
+		//其中，lowerThreshold=upperThreshold=getBytePixel(startX,startY)
 	}
+	
+	
 	/*************************************************************************
 	boolean isLine(int xs,int ys) ：       判断是否在颗粒内
 	*************************************************************************/
-	boolean isLine(int xs,int ys)//在矩形(x,y-5),(x+10,y-5),(x+10,y+5),(x,y+5)内
+	boolean isLine(int xs, int ys)//在矩形(x,y-5),(x+10,y-5),(x+10,y+5),(x,y+5)内进行运算
 	{
 		int r=5;
 		int xmin=xs;
 		int xmax=xs+2*r;
-		
-		if(xmax>width)
-			xmax=width-1;
 		int ymin=ys-r;
-		
-		if(ymin<0)
-			ymin=0;
 		int ymax=ys+r;
 		
-		if(ymax>=height)
-			ymax=height-1;
+		if(xmax> width)
+			xmax= width-1;	
+		if(ymin< 0)
+			ymin= 0;
+		if(ymax>= height)
+			ymax= height-1;
+		
 		int area=0;
 		int insideCount=0;
-		for(int x=xmin;(x<=xmax);x++)
-			for(int y=ymin;y<=ymax;y++)
+		
+		for(int x= xmin; x<= xmax; x++)
+			for(int y= ymin; y<= ymax; y++)
 			{
 				area++;
-				if(inside(x,y))
+				if(inside(x, y))
 					insideCount++;
 			}
-		return((double)insideCount)/area>=0.75; //四分之三以上都在颗粒内，则同一行
+		
+		return((double)insideCount)/area>= 0.75; //四分之三以上都在颗粒内，则同一行
 	}
+	
+	
 	/*startx,starty是在颗粒上的点，xpoints,ypoints用来
 	存储边界点，数组table[]用来决定边界扫描方向*/
 	public void autoOutline(int startX,int startY)
 	{
-		int x=startX;
-		int y=startY;
+		int x= startX;
+		int y= startY;
 		int direction;
-		lowerThreshold=upperThreshold=getBytePixel(startX,startY);
+		lowerThreshold= upperThreshold= getBytePixel(startX, startY); //赋初始点的值
+		
 		do
 		{
 			x++;
 		}
-		while(inside(x,y));
+		while(inside(x, y));
 		
-		if(isLine(x,y))
+		if(isLine(x, y))
 		{
-			lowerThreshold=upperThreshold=getBytePixel(x,y);
-			direction=UP;
+			lowerThreshold= upperThreshold= getBytePixel(x, y);
+			direction= UP;
 		}
 		else
 		{
-			if(!inside(x-1,y-1))
-				direction=RIGHT;
-			else if(inside(x,y-1))
-				direction=LEFT;
+			if(!inside(x-1, y-1))
+				direction= RIGHT;
 			else
-				direction=DOWN;
+				if(inside(x, y-1))
+					direction= LEFT;
+				else
+					direction=DOWN;
 		}
-			
+		
 		traceEdge(x,y,direction);
 	}
 	/**************************************************************************************
-	oid traceEdge(int xstart,int ystart,int startingDirection)：  查找边缘
+	void traceEdge(int xstart, int ystart, int startingDirection)：  查找边缘
 	***************************************************************************************/
-	void traceEdge(int xstart,int ystart,int startingDirection)
+	void traceEdge(int xstart, int ystart, int startingDirection)
 	{
 		int[] table=
 		{
-			NA,				//0000
-			RIGHT,			//000X
-			DOWN,			//00X0
-			RIGHT,			//00XX
-			UP,				//0X00
-			UP,				//0X0X
-			UP_OR_DOWN,		//0XX0
-			UP,				//0XXX
-			LEFT,			//X000
-       		 LEFT_OR_RIGHT,	//X00X
-			DOWN,			//X0X0
-			RIGHT,			//X0XX
-			LEFT,			//XX00
-			LEFT,			//XX0X
-			DOWN,			//XXX0
-			NA,				//XXXX
+			NA,				//0000  0
+			RIGHT,			//000X  1
+			DOWN,			//00X0  2
+			RIGHT,			//00XX  3
+			UP,				//0X00  4
+			UP,				//0X0X  5
+			UP_OR_DOWN,		//0XX0  6
+			UP,				//0XXX  7
+			LEFT,			//X000  8
+			LEFT_OR_RIGHT,	//X00X  9
+			DOWN,			//X0X0  10
+			RIGHT,			//X0XX  11
+			LEFT,			//XX00  12
+			LEFT,			//XX0X  13
+			DOWN,			//XXX0  14
+			NA,				//XXXX  15
 		};
 		int index;
 		int newDirection;
-		int x=xstart;
-		int y=ystart;
-		int direction=startingDirection;
-		int count=0;
-		boolean UL=inside(x-1,y-1);
-		boolean UR=inside(x,y-1);
-		boolean LL=inside(x-1,y);
-		boolean LR=inside(x,y);
+		int x= xstart;
+		int y= ystart;
+		int direction= startingDirection;
+		int count= 0;
+		
+		boolean UL= inside(x-1, y-1); //UpperLeft
+		boolean UR= inside(x, y-1); //UpperRight
+		boolean LL= inside(x-1, y); //LowerLeft
+		boolean LR= inside(x, y); //LowerRight
+		
 		do
 		{
-			index=0;
-			if(LR) index|=1;
-			if(LL) index|=2;   
-			if(UR) index|=4;    
-			if(UL) index|=8;    
-			newDirection=table[index];
-			if(newDirection==UP_OR_DOWN)
+			index= 0;
+			if(LR) index|= 1; //index= 00000000 | 00000001
+			if(LL) index|= 2; //index= 00000000 | 00000010
+			if(UR) index|= 4; //index= 00000000 | 00000100
+			if(UL) index|= 8; //index= 00000000 | 00001000
+			newDirection= table[index]; //根据4邻域像素确定方向
+			
+			//判断对角分布的情况下的方向
+			if(newDirection == UP_OR_DOWN)
 			{
-				if(direction==RIGHT)
-					newDirection=UP;
+				if(direction == RIGHT)
+					newDirection= UP;
 				else
-					newDirection=DOWN;
+					newDirection= DOWN;
 			}
-			if(newDirection==LEFT_OR_RIGHT)
+			if(newDirection == LEFT_OR_RIGHT)
 			{
-		   		if(direction==UP)
-					newDirection=LEFT;
+		   		if(direction == UP)
+					newDirection= LEFT;
 				else
-					newDirection=RIGHT;
+					newDirection= RIGHT;
 			}
-			if(newDirection!=direction)
+			if(newDirection != direction)
 			{
-			xpoints[count]=x;
-			ypoints[count++]=y;
+			xpoints[count]= x;
+			ypoints[count++]= y;
 			}
 			
-			if(count==xpoints.length)//当边界颗粒数超出初始值，扩大一倍
+			if(count == xpoints.length)//当边界颗粒数超出初始值，扩大一倍
 			{
-				int[] xtemp=new int[maxPoints*2];
-				int[] ytemp=new int[maxPoints*2];
+				int[] xtemp= new int[maxPoints*2];
+				int[] ytemp= new int[maxPoints*2];
 				System.arraycopy(xpoints,0,xtemp,0,maxPoints);
 				System.arraycopy(ypoints,0,ytemp,0,maxPoints);
 				//(原数组名，起始位置，目标数组名，起始位置，拷贝大小)
-				xpoints=xtemp;
-				ypoints=ytemp;
-				maxPoints*=2;
+				xpoints= xtemp;
+				ypoints= ytemp;
+				maxPoints*= 2;
 			}
 			
 			switch(newDirection)
