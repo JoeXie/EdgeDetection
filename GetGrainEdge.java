@@ -4,26 +4,36 @@ import java.awt.Polygon;
 public class GetGrainEdge
 {
 	static final int UP=0,DOWN=1,UP_OR_DOWN=2,LEFT=3,RIGHT=4,LEFT_OR_RIGHT=5,NA=6;
-	public int npoints;  //颗粒边界点个数
+	
 	private int maxPoints=1000; //初设颗粒边界点个数
 	private int maxPoints0=400;	//初设颗粒个数
-	public int[] xpoints=new int[maxPoints];//存储颗粒边界数组
-	public int[] ypoints=new int[maxPoints];
-	public int width,height,Xstart,Ystart;
-	private int[] cpixels;  //像素值数组
-	private int lowerThreshold,upperThreshold;
-	public boolean yes;
 	
-	public int[][] xxpoints=new int[maxPoints0][maxPoints];//第maxPoints0颗粒的边界点数组
-	public int[][] yypoints=new int[maxPoints0][maxPoints];
+	public int npoints;  //颗粒边界点个数
+	public int[] nnpoints= new int[maxPoints];  //存储某个颗粒边界点个数数组
+	
+	public int[] xpoints= new int[maxPoints];//存储颗粒边界数组
+	public int[] ypoints= new int[maxPoints];
+	
+	public int width, height, Xstart, Ystart;
+	private int[] cpixels;  //像素值数组
+	private int lowerThreshold, upperThreshold;
+
+	public boolean yes; //在判断是否在已获得的颗粒时用到
+	
+	public int[][] xxpoints= new int[maxPoints0][maxPoints];//第maxPoints0个颗粒的边界点数组
+	public int[][] yypoints= new int[maxPoints0][maxPoints];
 	//每一行 xxpoints存储的像素点个数
-	public int[] nnpoints=new int[maxPoints];  //某颗粒边界点个数数组
-	//颗粒个数
-	public int n=0;
-	Polygon[] polygon=new Polygon[maxPoints0];//多边形（颗粒边界）数组
-	int[] area=new int[maxPoints0];      //颗粒占的像素点个数
-	public int[] X=new int[maxPoints0];  //颗粒中心数组
-	public int[] Y=new int[maxPoints0];
+	
+	public int n=0; //n表示颗粒个数
+	
+	Polygon[] polygon= new Polygon[maxPoints0];//多边形（颗粒边界）数组
+	
+	int[] area= new int[maxPoints0];      //颗粒占的像素点个数
+	
+	public int[] X= new int[maxPoints0];  //数组X[j], Y[j]存放第j个颗粒中心坐标
+	public int[] Y= new int[maxPoints0];
+	
+	
 	
 	
 	public GetGrainEdge(MyFrame f, String ss, BMPDecoder bmp)//构造函数
@@ -114,11 +124,11 @@ public class GetGrainEdge
 					insideCount++;
 			}
 		
-		return((double)insideCount)/area>= 0.75; //四分之三以上都在颗粒内，则同一行
+		return((double)insideCount)/area >= 0.75; //四分之三以上都在颗粒内，则同一行
 	}
 	
 	
-	/*startx,starty是在颗粒上的点，xpoints,ypoints用来
+	/*startX,startY是在颗粒上的点，xpoints,ypoints用来
 	存储边界点，数组table[]用来决定边界扫描方向*/
 	public void autoOutline(int startX,int startY)
 	{
@@ -260,123 +270,135 @@ public class GetGrainEdge
 					LR=inside(x,y);
 					break;
 			}
+			
 			direction=newDirection;
 		}
-		while((x!=xstart||y!=ystart));//||direction!=startingDirection));
-		nnpoints[n]=count;  //保存颗粒n的边界点数
-		npoints=count; 
-		polygon[n]=new Polygon(xpoints, ypoints, npoints); //保存n颗粒的边界多边形
-		System.arraycopy(xpoints,0,xxpoints[n],0,npoints);
-		System.arraycopy(ypoints,0,yypoints[n],0,npoints);
+		while((x!= xstart || y!= ystart)); // || direction!= startingDirection));
+		
+		nnpoints[n]= count; //保存颗粒n的边界点数
+		npoints= count;
+		polygon[n]= new Polygon(xpoints, ypoints, npoints); //保存第n颗粒的边界多边形
+		System.arraycopy(xpoints, 0, xxpoints[n], 0, npoints);
+		System.arraycopy(ypoints, 0, yypoints[n], 0, npoints);
 		//(原数组名，起始位置，目标数组名，起始位置，拷贝大小)
-		if(area(n)>=ChangeMyFrame.minGrainSize)//是否为颗粒的判断条件：面积大于minGrainSize(10)
+		
+		if(area(n) >= ChangeMyFrame.minGrainSize)//是否为颗粒的判断条件：面积大于minGrainSize(10)
 		{
 			n++;
-			if(n==polygon.length)  //如果颗粒数超过初设值400，则该设为800
+			if(n == polygon.length)  //如果颗粒数超过初设值400，则该设为800
 			{
 				int[][] xtemp=new int[maxPoints0*2][maxPoints];
 				int[][] ytemp=new int[maxPoints0*2][maxPoints];
 				Polygon[] ttemp=new Polygon[maxPoints0*2];
 				int[] areatemp=new int[maxPoints0*2];
-				System.arraycopy(xxpoints,0,xtemp,0,maxPoints0);
-				System.arraycopy(yypoints,0,ytemp,0,maxPoints0);
-				System.arraycopy(polygon,0,ttemp,0,maxPoints0);
-				System.arraycopy(area,0,areatemp,0,maxPoints0);
-				xxpoints=xtemp;
-				yypoints=ytemp;
-				polygon=ttemp;
-				area=areatemp;
-				maxPoints0*=2;
+				System.arraycopy(xxpoints, 0, xtemp, 0, maxPoints0);
+				System.arraycopy(yypoints, 0, ytemp, 0, maxPoints0);
+				System.arraycopy(polygon, 0, ttemp, 0, maxPoints0);
+				System.arraycopy(area, 0, areatemp, 0, maxPoints0);
+				xxpoints= xtemp;
+				yypoints= ytemp;
+				polygon= ttemp;
+				area= areatemp;
+				maxPoints0*= 2;
 			}
 		}
 	}
+	
+	
 	/***************************************************************************
-	public int area(int n) ：             计算该颗粒的面积
+	public int area(int n) ：             计算该颗粒的面积（统计包含多少个像素）
 	****************************************************************************/
-	public int area(int n)
+	public int area(int n) //参数n表示第n个点
 	{
-		area[n]=0;
-		for(int i=0;i<width-1;i++)
-			for(int j=0;j<height;j++)
+		area[n]= 0;
+		for(int i= 0; i< width-1; i++)
+			for(int j= 0; j< height; j++)
 			{
-				if(polygon[n].contains(i,j))
+				if(polygon[n].contains(i, j))
 					area[n]++;
 			}
 			return area[n];
 	}
+	
+	
 	/*********************************************************************
-	public boolean onEdge(int x, int y) ：　判断该点是否已在边界上或颗粒内
+	public boolean onEdge(int x, int y) ：判断该点（x，y）是否已在边界上或颗粒内
 	**********************************************************************/
 	public boolean onEdge(int x, int y)
 	{
-		for(int nn=0;nn<n;nn++)
+		for(int nn= 0; nn< n; nn++) //判断是否在边界上
 		{
-			for(int i=0;i<polygon[nn].npoints;i++)
+			for(int i=0; i< polygon[nn].npoints; i++)
 			{
 				if(x==xxpoints[nn][i] && y==yypoints[nn][i])
 					return true;
 			}
 			
-			if(polygon[nn].contains(x,y))
+			if(polygon[nn].contains(x,y)) //判断是否在顶点上？？？？？？？此处是否存在重复操作？？？？？？？？
 				return true;
 		}
 		return false;
 	}
+	
+	
 	/****************************************************************************
 	void getRestEdge()  ：             获得其余边界
 	*****************************************************************************/
 	void getRestEdge()
 	{
 		int m_b;
-		outer2: for(int y=height*(100-ChangeMyFrame.processSize)/200;
-					y<height*(100+ChangeMyFrame.processSiz e)/200;y++)
+		outer2: for(int y= height*(100-ChangeMyFrame.processSize)/200;
+					y< height*(100+ChangeMyFrame.processSiz e)/200; y++)
 				{
-					for(int x=width*(100-ChangeMyFrame.processSize)/200;
-						x<width*(100+ChangeMyFrame.processSize)/200; x++)
+					for(int x= width*(100-ChangeMyFrame.processSize)/200;
+						x< width*(100+ChangeMyFrame.processSize)/200; x++)
 					{
-						yes=onEdge(x,y);
-						m_b=cpixels[y*width+x];
-						if(m_b==0xFF000000) //为黑色
+						yes= onEdge(x, y);
+						m_b= cpixels[y*width+x];
+						if(m_b == 0xFF000000) //为黑色
 						{
-							Xstart=x; 
-							Ystart=y;
+							Xstart= x; 
+							Ystart= y;
 							if(!yes)  //且不在已找到的颗粒上或内
 							{
-                    			autoOutline(Xstart,Ystart);
+								autoOutline(Xstart, Ystart);
 							}
 						}
 					}
 					
 					ChangeMyFrame.myProgressBar.setValue(30+y*70/height);
-					ChangeMyFrame.myProgressBar.setString("正在处理中，请稍侯！"
-					+String.valueOf(30+y*70/height)+" %");
+					ChangeMyFrame.myProgressBar.setString("正在处理中，请稍侯！"+
+															String.valueOf(30+y*70/height)+" %");
 				}
 	}
-		/************************************************************************
-		private void  centerOfGrain() ：      获得颗粒的中心点
-		*************************************************************************/
+	
+	
+	/************************************************************************
+	private void  centerOfGrain() ：      获得颗粒的中心点
+	*************************************************************************/
 	private void  centerOfGrain()
 	{
-		int xmax,ymax,xmin,ymin;
-		for(int j=0;j<n;j++)
+		int xmax, ymax, xmin, ymin;
+		for(int j= 0; j< n; j++)
 		{
-			xmax=polygon[j].xpoints[0];
-			ymax=polygon[j].ypoints[0];
-			xmin=polygon[j].xpoints[0];
-			ymin=polygon[j].ypoints[0];
+			xmax= polygon[j].xpoints[0];
+			ymax= polygon[j].ypoints[0];
+			xmin= polygon[j].xpoints[0];
+			ymin= polygon[j].ypoints[0];
 			
-			for(int i=0;i<polygon[j].npoints;i++)
+			for(int i= 0; i< polygon[j].npoints; i++)
 			{
-				if(polygon[j].xpoints[i]>xmax)
-					xmax=polygon[j].xpoints[i];
-				if(polygon[j].ypoints[i]>ymax)
-					ymax=polygon[j].ypoints[i];
-				if(polygon[j].xpoints[i]<xmin)
-					xmin=polygon[j].xpoints[i];
-				if(polygon[j].ypoints[i]<ymin)
-					ymin=polygon[j].ypoints[i];
+				if(polygon[j].xpoints[i]> xmax)
+					xmax= polygon[j].xpoints[i];
+				if(polygon[j].ypoints[i]> ymax)
+					ymax= polygon[j].ypoints[i];
+				if(polygon[j].xpoints[i]< xmin)
+					xmin= polygon[j].xpoints[i];
+				if(polygon[j].ypoints[i]< ymin)
+					ymin= polygon[j].ypoints[i];
 			}
-			X[j]=(xmax+xmin)/2;
+			
+			X[j]=(xmax+xmin)/2; //X[j], Y[j]存放第j个点的中心坐标
 			Y[j]=(ymax+ymin)/2;
 		}
 	}
