@@ -1,3 +1,4 @@
+package mySourceFiles;
 import java.awt.Polygon;
 
 
@@ -6,7 +7,7 @@ public class GetGrainEdge
 	static final int UP=0,DOWN=1,UP_OR_DOWN=2,LEFT=3,RIGHT=4,LEFT_OR_RIGHT=5,NA=6;
 	
 	private int maxPoints=1000; //初设颗粒边界点个数
-	private int maxPoints0=400;	//初设颗粒个数
+	private int maxPoints0=400; //初设颗粒个数
 	
 	public int npoints;  //颗粒边界点个数
 	public int[] nnpoints= new int[maxPoints];  //存储某个颗粒边界点个数数组

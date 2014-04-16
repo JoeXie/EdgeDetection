@@ -1,3 +1,4 @@
+package mySourceFiles;
 import java.awt.Image;
 import java.awt.Toolkit;
 import java.awt.image.MemoryImageSource;
@@ -35,7 +36,7 @@ public class BeBinary
 		autoThreshold(binarybmp);//获取直方图->获取阈值->二值处理
 		MemoryImageSource mis=binarybmp.makeImageSource();
 		MyFrame.bmpDecoder=binarybmp;
-		MyFrame.canvas.myImage=Toolkit.getDefaultToolkit().createImage(mis);
+		MySourceFiles.canvas.myImage=Toolkit.getDefaultToolkit().createImage(mis);
 		MyFrame.canvas.repaint();
 	}
 

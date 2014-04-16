@@ -1,3 +1,4 @@
+package mySourceFiles;
 import java.awt.image.ColorModel;
 import java.awt.image.IndexColorModel;
 import java.awt.image.MemoryImageSource;
