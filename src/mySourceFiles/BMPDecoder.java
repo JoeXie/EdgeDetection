@@ -1,15 +1,15 @@
 package mySourceFiles;
+
 import java.awt.image.ColorModel;
 import java.awt.image.IndexColorModel;
 import java.awt.image.MemoryImageSource;
 import java.io.IOException;
 import java.io.InputStream;
 
-
-public class BMPDecoder 
-{
+/** A decoder for Windows bitmap (.BMP) files. */
+public class BMPDecoder {
     InputStream is;
-    int curPos = 0;
+    int curPos = 0;       // current position
             
     int bitmapOffset;               // starting position of image data
 
@@ -28,6 +28,7 @@ public class BMPDecoder
     int[] intData;                  // Unpacked data
 
 
+    //返回int型b4 b3 b2 b1
     private int readInt() throws IOException {
             int b1 = is.read();
             int b2 = is.read();
@@ -38,6 +39,7 @@ public class BMPDecoder
     }
 
 
+    //返回short型b2 b1
     private short readShort() throws IOException {
             int b1 = is.read();
             int b2 = is.read();
@@ -46,6 +48,7 @@ public class BMPDecoder
     }
 
 
+    //获取文件头信息，判断是不是BMP图片
     void getFileHeader()  throws IOException, Exception {
             // Actual contents (14 bytes):
             short fileType = 0x4d42;// always "BM"
@@ -62,6 +65,8 @@ public class BMPDecoder
             bitmapOffset = readInt();
     }
 
+    
+    //分析文件头，获取图片信息
     void getBitmapHeader() throws IOException {
     
             // Actual contents (40 bytes):
@@ -71,10 +76,11 @@ public class BMPDecoder
             int horzResolution;             // horizontal resolution, pixels/meter (may be 0)
             int vertResolution;             // vertical resolution, pixels/meter (may be 0)
             int colorsUsed;                 // no. of colors in palette (if 0, calculate)
-            int colorsImportant;    // no. of important colors (appear first in palette) (0 means all are important)
+            int colorsImportant;  // no. of important colors (appear first in palette) (0 means all are important)
             boolean topDown;
-            int noOfPixels;
+            int noOfPixels;        //像素数量
 
+            //根据文件头信息分布依次读取
             size = readInt();
             width = readInt();
             height = readInt();
@@ -93,12 +99,14 @@ public class BMPDecoder
             // Scan line is padded with zeroes to be a multiple of four bytes
             scanLineSize = ((width * bitsPerPixel + 31) / 32) * 4;
 
+            //获得图片的大小
             if (sizeOfBitmap != 0)
                     actualSizeOfBitmap = sizeOfBitmap;
             else
                     // a value of 0 doesn't mean zero - it means we have to calculate it
                     actualSizeOfBitmap = scanLineSize * height;
 
+            //判断是多少位的图片
             if (colorsUsed != 0)
                     actualColorsUsed = colorsUsed;
             else
@@ -110,10 +118,11 @@ public class BMPDecoder
     }
 
 
+    //读取调色板数据存放到r[] b[] g[]中
     void getPalette() throws IOException {
             noOfEntries = actualColorsUsed;
             //IJ.write("noOfEntries: " + noOfEntries);
-            if (noOfEntries>0) {
+            if (noOfEntries > 0) {
                     r = new byte[noOfEntries];
                     g = new byte[noOfEntries];
                     b = new byte[noOfEntries];
@@ -129,6 +138,7 @@ public class BMPDecoder
             }
     }
 
+    //按一定格式复制rawData到intData
     void unpack(byte[] rawData, int rawOffset, int[] intData, int intOffset, int w) {
             int j = intOffset;
             int k = rawOffset;
@@ -137,14 +147,14 @@ public class BMPDecoder
                     int b0 = (((int)(rawData[k++])) & mask);
                     int b1 = (((int)(rawData[k++])) & mask) << 8;
                     int b2 = (((int)(rawData[k++])) & mask) << 16;
-                    intData[j] = 0xff000000 | b0 | b1 | b2;
+                    intData[j] = 0xff000000 | b0 | b1 | b2;   //输出int型ff b2 b1 b0
                     j++;
             }
     }
 
 
-    void unpack(byte[] rawData, int rawOffset, int bpp, 
-            byte[] byteData, int byteOffset, int w) throws Exception {
+    void unpack(byte[] rawData, int rawOffset, int bpp, byte[] byteData, int byteOffset, int w) throws Exception 
+    {
             int j = byteOffset;
             int k = rawOffset;
             byte mask;
@@ -158,7 +168,7 @@ public class BMPDecoder
                     throw new Exception("Unsupported bits-per-pixel value");
             }
 
-            for (int i = 0;;) {
+            for (int i = 0; ; ) {
                     int shift = 8 - bpp;
                     for (int ii = 0; ii < pixPerByte; ii++) {
                             byte br = rawData[k];
@@ -175,13 +185,14 @@ public class BMPDecoder
     }
 
 
+    //读取像素值到intData[]或byteData[]
     void getPixelData() throws IOException, Exception {
             byte[] rawData;                 // the raw unpacked data
 
             // Skip to the start of the bitmap data (if we are not already there)
             long skip = bitmapOffset - curPos;
             if (skip > 0) {
-                    is.skip(skip);
+                    is.skip(skip);  //读取位置跳过skip个字节
                     curPos += skip;
             }
 

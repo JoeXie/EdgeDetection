@@ -15,9 +15,10 @@ public class DoTest
 {
 	/**********************************************
 	 * 1、输入图片；
-	 * 2、调用BeBinary类进行二值化处理；
-	 * 3、调用GetGrainEdge类进行边缘跟踪；
-	 * 4、保存图像。
+	 * 2、灰度化
+	 * 3、二值化处理；
+	 * 4、调用GetGrainEdge类进行边缘跟踪；
+	 * 5、保存图像。
 	 * ********************************************/
 	public static void main(String[] args) throws IOException
 	{
