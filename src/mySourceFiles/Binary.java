@@ -7,28 +7,32 @@ import java.awt.image.MemoryImageSource;
 
 public class Binary
 {
+	BMPDecoder binarybmp = new BMPDecoder();
+	
 	//void binary(MyFrame f, String ss, BMPDecoder bmp)
-	void binary(String ss, BMPDecoder bmp)
+	public BMPDecoder beBinary(BMPDecoder bmp)
 	{
 		//this.f = f;
-		BMPDecoder binarybmp = bmp;
-		autoThreshold(binarybmp); //获取直方图->获取阈值->二值处理
-		MemoryImageSource mis = binarybmp.makeImageSource();
+		binarybmp = bmp;
+		autoThreshold(binarybmp); //获取直方图->获取阈值-> 二值处理，在二值化时候会修改全局参数binarybmp
+		//MemoryImageSource mis = binarybmp.makeImageSource();
 		//MyFrame.BMPDecoder =binarybmp;
 		//MySourceFiles.canvas.myImage=Toolkit.getDefaultToolkit().createImage(mis);
 		//MyFrame.canvas.repaint();
+		
+		return binarybmp;
 	}
 	
 	
 	//自动获取阈值
-	public void autoThreshold(BMPDecoder bmp)
+	private void autoThreshold(BMPDecoder bmp)
 	{
 		threshold(getAutoThreshold(bmp), bmp);
 	}
 
 
 	//获取直方图（直方图是得到每个像素的RGB值）
-	public int[] getHistogram(BMPDecoder bmp)
+	private int[] getHistogram(BMPDecoder bmp)
 	{
 		BMPDecoder newbmp = bmp;
 		int[] m_binary = new int[bmp.width * bmp.height];
@@ -50,7 +54,7 @@ public class Binary
 
 
 	//获取阈值
-	public int getAutoThreshold(BMPDecoder bmp)
+	private int getAutoThreshold(BMPDecoder bmp)
 	{
 		BMPDecoder newbmp = bmp;
 		int level;
@@ -96,7 +100,7 @@ public class Binary
 
 	
 	//二值处理
-	public void threshold (int level,BMPDecoder bmp)
+	private void threshold (int level,BMPDecoder bmp)
 	{
 		BMPDecoder newbmp = bmp;
 		int m_binary;
@@ -110,9 +114,11 @@ public class Binary
 				else
 					m_binary = 0xFFFFFFFF; //像素值大于LEVEL 取前景色（白色）
 				
-				newbmp.intData[i*bmp.width+j]=m_binary;
+				newbmp.intData[i * bmp.width+j] = m_binary;
 			}
 		}
+		
+		binarybmp = newbmp; //修改全局参数
 	}
 	
 	
