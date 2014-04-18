@@ -11,7 +11,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 
-public class EdgeDetcetionTest 
+public class DoTest 
 {
 	/**********************************************
 	 * 1、输入图片；
@@ -71,9 +71,8 @@ public class EdgeDetcetionTest
 		/**************************************************
 		 * 二值化处理。
 		 **************************************************/
-		
-		
-		
+		Binary graybmp = new Binary();
+		newbmp = graybmp.beBinary(newbmp);
 		
 		
 		/**************************************************
@@ -89,7 +88,7 @@ public class EdgeDetcetionTest
 		
 		try 
 		{
-			Image img = Component.createImage(bmp.makeImageSource());
+			//Image img = Component.createImage(bmp.makeImageSource());
 			//makeImageSource()不知道怎么使用
 		} 
 		finally 
