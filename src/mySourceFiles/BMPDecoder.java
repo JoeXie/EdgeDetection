@@ -5,6 +5,7 @@ import java.awt.image.IndexColorModel;
 import java.awt.image.MemoryImageSource;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 
 /** A decoder for Windows bitmap (.BMP) files. */
 public class BMPDecoder {
@@ -21,6 +22,18 @@ public class BMPDecoder {
     int scanLineSize;
     int actualColorsUsed;
 
+    // Actual contents (40 bytes):
+    int size;                               // size of this header in bytes
+    short planes;                   // no. of color planes: always 1
+    int sizeOfBitmap;               // size of bitmap in bytes (may be 0: if so, calculate)
+    int horzResolution;             // horizontal resolution, pixels/meter (may be 0)
+    int vertResolution;             // vertical resolution, pixels/meter (may be 0)
+    int colorsUsed;                 // no. of colors in palette (if 0, calculate)
+    int colorsImportant;  // no. of important colors (appear first in palette) (0 means all are important)
+    boolean topDown;
+    int noOfPixels;        //像素数量
+
+    
     byte r[], g[], b[];             // color palette
     int noOfEntries;
 
@@ -29,7 +42,7 @@ public class BMPDecoder {
 
 
     //返回int型b4 b3 b2 b1
-    private int readInt() throws IOException {
+    public int readInt() throws IOException {
             int b1 = is.read();
             int b2 = is.read();
             int b3 = is.read();
@@ -40,7 +53,7 @@ public class BMPDecoder {
 
 
     //返回short型b2 b1
-    private short readShort() throws IOException {
+    public short readShort() throws IOException {
             int b1 = is.read();
             int b2 = is.read();
             curPos += 2;
@@ -51,13 +64,13 @@ public class BMPDecoder {
     //获取文件头信息，判断是不是BMP图片
     void getFileHeader()  throws IOException, Exception {
             // Actual contents (14 bytes):
-            short fileType = 0x4d42;// always "BM"
+            short fileType = 0x004d42;// always "BM"
             int fileSize;                   // size of file in bytes
             short reserved1 = 0;    // always 0
             short reserved2 = 0;    // always 0
 
             fileType = readShort();
-            if (fileType != 0x4d42)
+            if (fileType != 0x004d42)
                     throw new Exception("Not a BMP file");  // wrong file type
             fileSize = readInt();
             reserved1 = readShort();
@@ -69,17 +82,7 @@ public class BMPDecoder {
     //分析文件头，获取图片信息
     void getBitmapHeader() throws IOException {
     
-            // Actual contents (40 bytes):
-            int size;                               // size of this header in bytes
-            short planes;                   // no. of color planes: always 1
-            int sizeOfBitmap;               // size of bitmap in bytes (may be 0: if so, calculate)
-            int horzResolution;             // horizontal resolution, pixels/meter (may be 0)
-            int vertResolution;             // vertical resolution, pixels/meter (may be 0)
-            int colorsUsed;                 // no. of colors in palette (if 0, calculate)
-            int colorsImportant;  // no. of important colors (appear first in palette) (0 means all are important)
-            boolean topDown;
-            int noOfPixels;        //像素数量
-
+           
             //根据文件头信息分布依次读取
             size = readInt();
             width = readInt();
@@ -142,12 +145,12 @@ public class BMPDecoder {
     void unpack(byte[] rawData, int rawOffset, int[] intData, int intOffset, int w) {
             int j = intOffset;
             int k = rawOffset;
-            int mask = 0xff;
+            int mask = 0x00ff;
             for (int i = 0; i < w; i++) {
                     int b0 = (((int)(rawData[k++])) & mask);
                     int b1 = (((int)(rawData[k++])) & mask) << 8;
                     int b2 = (((int)(rawData[k++])) & mask) << 16;
-                    intData[j] = 0xff000000 | b0 | b1 | b2;   //输出int型ff b2 b1 b0
+                    intData[j] = 0x00ff000000 | b0 | b1 | b2;   //输出int型ff b2 b1 b0
                     j++;
             }
     }
@@ -161,9 +164,9 @@ public class BMPDecoder {
             int pixPerByte;
 
             switch (bpp) {
-            case 1: mask = (byte)0x01; pixPerByte = 8; break;
-            case 4: mask = (byte)0x0f; pixPerByte = 2; break;
-            case 8: mask = (byte)0xff; pixPerByte = 1; break;
+            case 1: mask = (byte)0x0001; pixPerByte = 8; break;
+            case 4: mask = (byte)0x000f; pixPerByte = 2; break;
+            case 8: mask = (byte)0x00ff; pixPerByte = 1; break;
             default:
                     throw new Exception("Unsupported bits-per-pixel value");
             }
@@ -240,9 +243,10 @@ public class BMPDecoder {
 
             if (noOfEntries > 0) {
                     // There is a color palette; create an IndexColorModel
-                    cm = new IndexColorModel(bitsPerPixel,
-                                    noOfEntries, r, g, b);
-            } else {
+                    cm = new IndexColorModel(bitsPerPixel, noOfEntries, r, g, b);
+            } 
+            else 
+            {
                     // There is no palette; use the default RGB color model
                     cm = ColorModel.getRGBdefault();
             }
@@ -251,14 +255,83 @@ public class BMPDecoder {
 
             if (bitsPerPixel > 8) {
                     // use one int per pixel
-                    mis = new MemoryImageSource(width,
-                            height, cm, intData, 0, width);
-            } else {
+                    mis = new MemoryImageSource(width, height, cm, intData, 0, width);
+            } 
+            else 
+            {
                     // use one byte per pixel
-                    mis = new MemoryImageSource(width,
-                            height, cm, byteData, 0, width);
+                    mis = new MemoryImageSource(width, height, cm, byteData, 0, width);
             }
 
             return mis;      // this can be used by Component.createImage()
     }
+    
+    
+    
+    
+    //保存图片到文件
+    public void write(OutputStream out) throws IOException, Exception
+    {
+    	//int width = image.getWidth();
+		//int height = image.getHeight();
+		//int rowSize = (width * 3 + 3) / 4 * 4;  // 3 bytes per pixel in RGB888, round up to multiple of 4
+		int imageSize = width * height;
+		
+		// BITMAPFILEHEADER
+		writeBytes(new byte[]{'B', 'M'}, out);  // FileType
+		writeInt32(14 + 40 + imageSize, out);   // FileSize
+		writeInt16(0, out);                     // Reserved1
+		writeInt16(0, out);                     // Reserved2
+		writeInt32(14 + 40, out);               // BitmapOffset
+		
+		// BITMAPINFOHEADER
+		writeInt32(40, out);                        // Size
+		writeInt32(width, out);                     // Width
+		writeInt32(height, out);                    // Height
+		writeInt16(1, out);                         // Planes
+		writeInt16(24, out);                        // BitsPerPixel
+		writeInt32(0, out);                         // Compression
+		writeInt32(imageSize, out);                 // SizeOfBitmap
+		writeInt32(horzResolution, out);  // HorzResolution
+		writeInt32(vertResolution, out);    // VertResolution
+		writeInt32(0, out);                         // ColorsUsed
+		writeInt32(0, out);                         // ColorsImportant
+    
+		for(int i = 0; i < imageSize; i++)
+		{
+			if(bitsPerPixel < 8)
+			{
+				out.write((int)byteData[i]);
+			} else
+			{
+				writeInt32(intData[i], out);
+			}
+		}
+    
+}
+
+
+	private void writeInt32(int x, OutputStream out) throws IOException
+	{
+		out.write( (x & 0xFF000000) >>> 24);
+		out.write( (x & 0x00FF0000) >>> 16);
+		out.write( (x & 0x0000FF00) >>> 8);
+		out.write( x & 0x000000FF);
+	}
+
+
+	private void writeInt16(int x, OutputStream out) throws IOException
+	{
+		out.write( (x & 0x0000FF00) >>> 8);
+		out.write( x & 0x000000FF);
+	}
+
+
+	private void writeBytes(byte[] x, OutputStream out) throws IOException
+	{
+		out.write(x);
+	}
+
+	
+	
 }
