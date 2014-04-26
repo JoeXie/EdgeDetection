@@ -65,7 +65,7 @@ public class DoTest
 		
 		MemoryImageSource mis= newbmp.makeImageSource(); //图像生成类？？？？？？？？？？？这个类和方法有待理解
 		//MyFrame.BMPDecoder= newbmp;
-		Image image= Toolkit.getDefaultToolkit().createImage(mis); //创建图像
+		//Image image= Toolkit.getDefaultToolkit().createImage(mis); //创建图像
 		//MyFrame.canvas.myImage= image;
 		//MyFrame.canvas.repaint();
 		
@@ -78,14 +78,27 @@ public class DoTest
 		
 		/**************************************************
 		 * 调用GetGrainEdge类进行边缘跟踪。
+		 * 
 		 **************************************************/
 		
 		
 		/*************************************************
 		 * 将bmp中的图片保存图像到Demo2.bmp。
 		 *************************************************/
-		
+		//MemoryImageSource mis= newbmp.makeImageSource();
+		//Image image= Toolkit.getDefaultToolkit().createImage(mis); //创建图像
 		OutputStream out = new FileOutputStream("Demo2.bmp");
+		try
+		{
+			newbmp.write(out);
+		} catch (Exception e) 
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} 
+		
+		/**
+		 * OutputStream out = new FileOutputStream("Demo2.bmp");
 		
 		try 
 		{
@@ -96,6 +109,8 @@ public class DoTest
 		{
 			out.close();
 		}
+		 */
+		
 		
 		
 		
